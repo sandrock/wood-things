@@ -8,25 +8,29 @@
 // Copyright:      sandrock, all rights reserved
 // 
 
+// animate with FPS=20 Step=50
 // input variables
 // suffixes are T̲hickness, L̲ength
-insideX =      900; // mm
-insideY =      320; // mm
-insideZ =      050; // mm
+// length is in millimeters 
+insideX =      900; // mm. desired space inside box
+insideY =      320; // mm. desired space inside box
+insideZ =      050; // mm. desired space inside box
 baseX =        insideX;
 baseY =        insideY;
-fondT =        4; // mm
-sideT =        18; // mm
-baseExtraX =   5;  // mm. how much the thin back penetratres into the side planks
-baseExtraZ =   10; // mm. how much distance between the back and the ground
-explodeL =     40; // mm
+fondT =        4;  // mm. thickness of the back plate
+sideT =        18; // mm. thickness of the side parts
+baseExtraX =   5;  // mm. how much the back plate penetratres into the side parts
+baseExtraZ =   10; // mm. how much distance between the back plate and the ground
+explodeL =     80; // mm. during animation: how much to expand parts
 topRotate =    45; // [0:180]
-arrowFletchL = 300; // mm
-arrowHeadL =   170; // mm
-arrowT =       9.5; // mm
-brown1 =       [142/255, 124/255, 64/255, .7];
-brown2 =       [130/255, 108/255, 37/255, .7];
-brown3 =       [096/255, 084/255, 45/255, .7];
+arrowSpaceForFletching = 300; // mm. length reserved for the fletching side of the arrow
+arrowSpaceForHead =      170; // mm. length reserved for the head      side of the arrow
+arrowT =       9.5; // mm. thickness of arrow shaft 
+brown1 =       [142/255, 124/255, 064/255, .70];
+brown2 =       [130/255, 108/255, 037/255, .70];
+brown3 =       [096/255, 084/255, 045/255, .70];
+debugColor =   [060/255, 084/255, 000/255, .35];
+arrowColor =   [000/255, 084/255, 080/255, .55];
 customTime =   -0.5; // [-0.5:0.5:1.0]
 
 // intermediate variables
@@ -45,29 +49,36 @@ if (customTime >= 0) {
 }
 
 module set(arrowRadius = 25) {
+    echo(str("DRAWING: set with arrowRadius=", arrowRadius))
+
     // base du fond bas
     color(brown1)
     translate([0, 0, -fondT])
-    cube([baseX, baseY, fondT]);
+    *cube([baseX, baseY, fondT]);
 
     // fond bas
+    backPlate = [ baseX +2*baseExtraX, baseY +2*baseExtraX, fondT ];
     color(brown1)
     translate([-baseExtraX, -baseExtraX, -fondT])
-    cube([baseX +2*baseExtraX, baseY +2*baseExtraX, fondT]);
+    cube(backPlate);
+    echo(str("PART: back plate: ", backPlate));
 
     // front
+    frontPartX = baseX + 2 * sideT;
     color(brown2)
     translate([-sideT, 0, -baseExtraZ])
     explode(0, -1, 0)
     rotate([90, 0, 0])
-    plank(baseX + 2 * sideT, frontH);
+    plank(frontPartX, frontH);
+    echo(str("PART: front part: [", frontPartX, ", ", sideT, ", ", sideT, "]"));
 
     // back
     color(brown2)
     translate([-sideT, baseY + sideT, -baseExtraZ])
     explode(0, +1, 0)
     rotate([90, 0, 0])
-    plank(baseX + 2 * sideT, frontH);
+    plank(frontPartX, frontH);
+    echo(str("PART: back  part: [", frontPartX, ", ", sideT, ", ", sideT, "]"));
 
     // left
     color(brown3)
@@ -75,6 +86,7 @@ module set(arrowRadius = 25) {
     explode(-1, 0, 0)
     rotate([90, 0, 90])
     plank(baseY, frontH);
+    echo(str("PART: left  part: [", baseY, ", ", frontH, ", ", sideT, "]"));
 
     // right
     color(brown3)
@@ -82,46 +94,88 @@ module set(arrowRadius = 25) {
     explode(+1, 0, 0)
     rotate([90, 0, 90])
     plank(baseY, frontH);
+    echo(str("PART: right part: [", baseY, ", ", frontH, ", ", sideT, "]"));
 
     // back plate for leather thingy
+    leatherPlate = [ baseX * 0.8 , frontH/3, sideT/3 ];
     color(brown2)
     translate([baseX * 0.1, baseY + sideT + sideT/4 + sideT/3,  4*sideT/3])
-    explode(0, +1, 0)
+    explode(0, +1.5, 0)
     rotate([90, 0, 0])
-    cube([baseX * 0.8 , frontH/3, sideT/3]);
+    cube(leatherPlate);
+    echo(str("PART: leather plate: ", leatherPlate));
 
     // arrow fetching separator
     color(brown3)
-    translate([arrowFletchL, 0, 0]) 
+    translate([arrowSpaceForFletching, 0, 0]) 
     explode(0, 0, 1)
     rotate([90, 0, 90])
     arrowPlank(insideY, 50, arrowRadius);
 
     // arrow head separator
     color(brown3)
-    translate([insideX - arrowHeadL, 0, 0]) 
+    translate([insideX - arrowSpaceForHead, 0, 0]) 
     explode(0, 0, 1)
     rotate([90, 0, 90])
     arrowPlank(insideY, 50, arrowRadius); 
+
+    // arrows
+    translate([000, 000, arrowT]) // elevate arrows a bit
+    explode(0, 0, 1)
+    rotate([90, 0, 90])
+    arrows(insideY*1, insideX, arrowRadius);
 }
 
 module arrowPlank(x, y, radiusL){
     difference() {
         plank(x, y);
 
+        // make holes for arrow shafts to fit in
         for (i = [0:10]) {
             translate([radiusL + i*radiusL*2, y-radiusL, -0.5]) {
-
                 scale(1.05) 
-                cube([arrowT, frontH/2, sideT]);
+                color(debugColor)
+                cube([arrowT, frontH/2 - arrowT/2, sideT]);
+            }
+        }
+    }
+}
 
-                translate([arrowT/2, arrowT/2, 0]) {
-                    translate([0, 0, -arrowFletchL/2]) 
-                    %cylinder(arrowFletchL/3, radiusL, radiusL, center=false);
+module arrows(x, y, radiusL){
+    // x       is the length available to stack N arrows
+    // y       is the length of one arrow
+    // radiusL is the radius of one arrow
+    arrowMargin = 20;
+    arrowHeadLength = 40;
+    arrowLength = y - arrowMargin - arrowMargin;
+    arrowCount = floor(x / (2 * radiusL));
 
-                    translate([0, 0, -sideT*10]) 
-                    %cylinder(sideT*20, arrowT/2, arrowT/2, center=false);
-                }
+    echo(str("ARROWS: space=", y, "x", x, " arrow=", radiusL, " margin=", arrowMargin, " length=", arrowLength, " count=", arrowCount));
+
+    // debug: draw one arrow box
+    color(debugColor)
+    *cube([radiusL*2, radiusL*2, y]);
+
+    // draw many arrows
+    for (i = [0:arrowCount-1]) {
+        //         spreads arrows         elevate   nop
+        translate([radiusL + i*radiusL*2, radiusL, 00.0]) {
+            color(arrowColor)
+            scale(1.00) // TODO: why did I scale to 1.05???
+            translate([arrowT/2, arrowT/2, 20]) {
+                // fût/shaft
+                //translate([0, 0, -sideT*10]) 
+                //#cylinder(sideT*40, arrowT/2, arrowT/2, center=false);
+                %cylinder(arrowLength - arrowHeadLength, arrowT/2, arrowT/2, center=false);
+
+                // empennage/fletching
+                translate([0, 0, 20])
+                scale(.980) // avoid flething from touching each other
+                %cylinder(arrowSpaceForFletching/3, radiusL, radiusL, center=false);
+
+                // head
+                translate([0, 0, arrowLength - arrowHeadLength]) 
+                %cylinder(arrowHeadLength, arrowT/1, 0, center=false);
             }
         }
     }
@@ -130,7 +184,6 @@ module arrowPlank(x, y, radiusL){
 module plank(x, y){
     cube([x, y, sideT]);
 }
-
 
 module explode(x, y, z) {
     let (v = xp())
