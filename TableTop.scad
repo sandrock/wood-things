@@ -10,21 +10,20 @@
 
 // input variables
 // suffixes are T̲hickness, L̲ength, H_eight, R_adius
+// millimeters
 
 // table configuration
-
-tableX =       1500; // mm
-tableY =       750;  // mm
-tableT =       40;   // mm
-tableH =       800;  // mm
-tableFootR =   25;   // mm
+tableX =       1500; // mm. table length
+tableY =       750;  // mm. table deepness
+tableT =       40;   // mm. tabletop thixkness
+tableH =       800;  // mm. table height
+tableFootR =   25;   // mm. table feet radius
 
 // tablet configuration
-
 tabletX = tableX;
-tabletY =      400; // mm
-tabletT =      20; // mm
-tabletH =      100+tableT; // mm
+tabletY =      400; // mm. tablet deepness
+tabletT =      20;  // mm. tablet parts thickness
+tabletH =      100+tableT; // mm. tablet height (under)
 
 // view configuration
 // how much to explode the parts?
@@ -32,12 +31,26 @@ explode =      0; // [0:0.05:1]
 showTable =    1; // [0,1]
 explodeL =     200; // mm
 
+groundColor = [070/255, 070/255, 070/255, 0.75];
+
+// draw ground
+color(groundColor)
+translate([-tableX, -tableX*1.5, 0])
+%square(tableX*3, false);
+
+// draw table
 if (showTable) {
-  drawTable();
+  translate([0, 0, -3]) {
+    drawTable();
+  }
 }
 
-translate([0, 0, explode * explodeL]) 
-    drawTablet();
+// draw tablet
+translate([0, 0, tableH]) {
+    translate([0, 0, explode * explodeL]) {
+        drawTablet();
+    }
+}
 
 
 module drawTablet() {
@@ -64,23 +77,26 @@ module drawTablet() {
     explode(0, -1, -.2)
     cube([sideL, tabletT, tabletH-tabletT]);
 
-
+    // TODO: round top edges
+    // TODO: top holes
+    // TODO: bottom holes
+    // TODO: screws
 }
 
 module drawTable() {
-    // top
     color("#bfb493") {
-        translate([0, 0, -tableT]) 
+        // top
+        translate([0, 0, tableH-tableT]) 
         cube([tableX, tableY, tableT]);
 
         // feet
-        translate([tableFootR*4, tableFootR*4, -tableH]) 
+        translate([tableFootR*4, tableFootR*4, 0]) 
         cylinder(tableH-tableT, tableFootR, tableFootR);
-        translate([tableX-tableFootR*4, tableFootR*4, -tableH]) 
+        translate([tableX-tableFootR*4, tableFootR*4, 0]) 
         cylinder(tableH-tableT, tableFootR, tableFootR);
-        translate([tableFootR*4, tableY-tableFootR*4, -tableH]) 
+        translate([tableFootR*4, tableY-tableFootR*4, 0]) 
         cylinder(tableH-tableT, tableFootR, tableFootR);
-        translate([tableX-tableFootR*4, tableY-tableFootR*4, -tableH]) 
+        translate([tableX-tableFootR*4, tableY-tableFootR*4, 0]) 
         cylinder(tableH-tableT, tableFootR, tableFootR);
     }
 }
