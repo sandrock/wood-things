@@ -12,32 +12,37 @@
 // input variables
 // suffixes are T̲hickness, L̲ength
 // length is in millimeters 
+// origin is the left front corner of the inside of the box
 insideX =      900; // mm. desired space inside box
 insideY =      320; // mm. desired space inside box
-insideZ =      050; // mm. desired space inside box
+insideZ =      060; // mm. desired space inside box
 baseX =        insideX;
 baseY =        insideY;
-fondT =        4;  // mm. thickness of the back plate
+fondT =        18; // mm. thickness of the back plate
 sideT =        18; // mm. thickness of the side parts
-baseExtraX =   5;  // mm. how much the back plate penetratres into the side parts
-baseExtraZ =   10; // mm. how much distance between the back plate and the ground
+legL =         25; // mm. extra length for the side parts to serve as legs
+baseExtraX =   00; // mm. how much the back plate penetratres into the side parts
+baseExtraZ =   00; // mm. how much distance between the back plate and the ground
 explodeL =     80; // mm. during animation: how much to expand parts
-topRotate =    45; // [0:180]
 arrowSpaceForFletching = 300; // mm. length reserved for the fletching side of the arrow
 arrowSpaceForHead =      170; // mm. length reserved for the head      side of the arrow
 arrowT =       9.5; // mm. thickness of arrow shaft 
-brown1 =       [142/255, 124/255, 064/255, .70];
-brown2 =       [130/255, 108/255, 037/255, .70];
-brown3 =       [096/255, 084/255, 045/255, .70];
+
+topRotate =    45; // [0:180]
+globalAlpha = .99;
+
+brown1 =       [142/255, 124/255, 064/255, globalAlpha];
+brown2 =       [130/255, 108/255, 037/255, globalAlpha];
+brown3 =       [096/255, 084/255, 045/255, globalAlpha];
 debugColor =   [060/255, 084/255, 000/255, .35];
 arrowColor =   [000/255, 084/255, 080/255, .55];
 customTime =   -0.5; // [-0.5:0.5:1.0]
 
 // intermediate variables
-frontH = insideZ + baseExtraZ;
+frontH = insideZ + fondT + baseExtraZ;
 
 // bottom part
-set(arrowRadius = 20);
+set(arrowRadius = 20, isBottom = true);
 
 // top part (rotated)
 if (customTime >= 0) {
@@ -45,18 +50,13 @@ if (customTime >= 0) {
         explode(0, 4, 0)
         rotate([topRotate, 0, 0]) 
         translate([0, 0, insideZ*-1]) 
-        set(arrowRadius = 25);
+        set(arrowRadius = 25, isBottom = false);
 }
 
-module set(arrowRadius = 25) {
-    echo(str("DRAWING: set with arrowRadius=", arrowRadius))
+module set(arrowRadius = 25, isBottom = false) {
+    echo(str("DRAWING: set with arrowRadius=", arrowRadius));
 
-    // base du fond bas
-    color(brown1)
-    translate([0, 0, -fondT])
-    *cube([baseX, baseY, fondT]);
-
-    // fond bas
+    // back plate
     backPlate = [ baseX +2*baseExtraX, baseY +2*baseExtraX, fondT ];
     color(brown1)
     translate([-baseExtraX, -baseExtraX, -fondT])
@@ -66,35 +66,36 @@ module set(arrowRadius = 25) {
     // front
     frontPartX = baseX + 2 * sideT;
     color(brown2)
-    translate([-sideT, 0, -baseExtraZ])
+    translate([-sideT, 0, -baseExtraZ -fondT])
     explode(0, -1, 0)
     rotate([90, 0, 0])
     plank(frontPartX, frontH);
-    echo(str("PART: front part: [", frontPartX, ", ", sideT, ", ", sideT, "]"));
+    echo(str("PART: front part: [", frontPartX, ", ", frontH, ", ", sideT, "]"));
 
     // back
     color(brown2)
-    translate([-sideT, baseY + sideT, -baseExtraZ])
+    translate([-sideT, baseY + sideT, -baseExtraZ -fondT])
     explode(0, +1, 0)
     rotate([90, 0, 0])
     plank(frontPartX, frontH);
-    echo(str("PART: back  part: [", frontPartX, ", ", sideT, ", ", sideT, "]"));
+    echo(str("PART: back  part: [", frontPartX, ", ", frontH, ", ", sideT, "]"));
 
     // left
+    sideH = isBottom ? (frontH + legL) : frontH;
     color(brown3)
-    translate([-sideT, 0, -baseExtraZ])
+    translate([-sideT, 0, -sideH + insideZ])
     explode(-1, 0, 0)
     rotate([90, 0, 90])
-    plank(baseY, frontH);
-    echo(str("PART: left  part: [", baseY, ", ", frontH, ", ", sideT, "]"));
+    footPlank(baseY, sideH, isBottom);
+    echo(str("PART: left  part: [", baseY, ", ", sideH, ", ", sideT, "]"));
 
     // right
     color(brown3)
-    translate([baseX, 0, -baseExtraZ])
+    translate([baseX, 0, -sideH + insideZ])
     explode(+1, 0, 0)
     rotate([90, 0, 90])
-    plank(baseY, frontH);
-    echo(str("PART: right part: [", baseY, ", ", frontH, ", ", sideT, "]"));
+    footPlank(baseY, sideH, isBottom);
+    echo(str("PART: right part: [", baseY, ", ", sideH, ", ", sideT, "]"));
 
     // back plate for leather thingy
     leatherPlate = [ baseX * 0.8 , frontH/3, sideT/3 ];
@@ -183,6 +184,32 @@ module arrows(x, y, radiusL){
 
 module plank(x, y){
     cube([x, y, sideT]);
+}
+
+
+module footPlank(x, y,isBottom = false) {
+    width = x + sideT + sideT;
+
+    if (isBottom) {
+        translate([-sideT, 0, 0])
+        difference(){
+            union() {
+                // top to bottom part (above)
+                translate([sideT, 0, 0])
+                cube([x, y, sideT]);
+
+                // side to side part (bellow)
+                translate([0, 0, 0])
+                cube([width, legL, sideT]);
+            };
+
+            radius = width/2;
+            translate([radius, -radius + x*0.07, -0.04])
+            cylinder(sideT*1.08, radius, radius, false);
+        }
+    } else {
+        plank(baseY, frontH);
+    }
 }
 
 module explode(x, y, z) {
