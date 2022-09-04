@@ -31,11 +31,11 @@ arrowT =       9.5; // mm. thickness of arrow shaft
 topRotate =    45; // [0:180]
 globalAlpha = .99;
 
-brown1 =       [140/255, 118/255, 037/255, globalAlpha];
-brown2 =       [130/255, 108/255, 037/255, globalAlpha];
-brown3 =       [120/255, 098/255, 037/255, globalAlpha];
+brown1 =       [140/255, 118/255, 037/255, globalAlpha]; // wood plates
+brown2 =       [130/255, 108/255, 037/255, globalAlpha]; // wood fronts
+brown3 =       [120/255, 098/255, 037/255, globalAlpha]; // wood sides
 brown4 =       [110/255, 065/255, 015/255, globalAlpha]; // leather
-darkGrey =     [050/255, 050/255, 050/255, globalAlpha];
+darkGrey =     [050/255, 050/255, 050/255, globalAlpha]; // studs
 debugColor =   [060/255, 084/255, 000/255, .35];
 arrowColor =   [000/255, 084/255, 080/255, .55];
 customTime =   -0.5; // [-0.5:0.5:1.0]
@@ -143,15 +143,13 @@ module set(arrowRadius = 25, isBottom = false) {
 
     // left
     sideH = isBottom ? (frontH + legL) : frontH;
-    color(brown3)
-    translate([-sideT, 0, -sideH + insideZ])
+    translate([0, insideY, -sideH + insideZ])
     explode(-1, 0, 0)
-    rotate([90, 0, 90])
+    rotate([90, 0, 90+180])
     footPlank(baseY, sideH, isBottom);
     echo(str("PART: left  part: [", baseY, ", ", sideH, ", ", sideT, "]"));
 
     // right
-    color(brown3)
     translate([baseX, 0, -sideH + insideZ])
     explode(+1, 0, 0)
     rotate([90, 0, 90])
@@ -249,10 +247,9 @@ module plank(x, y){
     cube([x, y, sideT]);
 }
 
-
 module frontPlank(x, y, isBottom = false) {
 
-    union(){
+    union() {
 
         color(brown2)
         plank(x, y);
@@ -307,12 +304,12 @@ module stud() {
     }
 }
 
-
 module footPlank(x, y, isBottom = false) {
     width = x + sideT + sideT;
 
     if (isBottom) {
         translate([-sideT, 0, 0])
+        color(brown3)
         difference(){
             union() {
                 // top to bottom part (above)
@@ -329,7 +326,21 @@ module footPlank(x, y, isBottom = false) {
             cylinder(sideT*1.08, radius, radius, false);
         }
     } else {
+        color(brown3)
         plank(baseY, frontH);
+    }
+
+    // studs
+    horiSpacing = 60;
+
+    // up+down studs
+    topCount  = floor(x / horiSpacing) - 1;
+    topOffset = floor(x % horiSpacing);
+    position = isBottom ? (legL + sideT/2) : (sideT/2);
+    for (i = [0:topCount]) {
+        // down
+        translate([topOffset + i * horiSpacing, position, sideT]) 
+        stud();
     }
 }
 
