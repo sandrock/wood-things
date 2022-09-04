@@ -34,6 +34,7 @@ globalAlpha = .99;
 brown1 =       [140/255, 118/255, 037/255, globalAlpha];
 brown2 =       [130/255, 108/255, 037/255, globalAlpha];
 brown3 =       [120/255, 098/255, 037/255, globalAlpha];
+brown4 =       [110/255, 065/255, 015/255, globalAlpha]; // leather
 darkGrey =     [050/255, 050/255, 050/255, globalAlpha];
 debugColor =   [060/255, 084/255, 000/255, .35];
 arrowColor =   [000/255, 084/255, 080/255, .55];
@@ -46,12 +47,72 @@ frontH = insideZ + fondT + baseExtraZ;
 set(arrowRadius = 20, isBottom = true);
 
 // top part (rotated)
-if (customTime >= 0) {
-    translate([0, insideY , insideZ+20]) 
-        explode(0, 4, 0)
-        rotate([topRotate, 0, 0]) 
-        translate([0, 0, insideZ*-1]) 
-        set(arrowRadius = 25, isBottom = false);
+rotationOffset = 40;
+translate([0, insideY +rotationOffset , insideZ]) {
+
+    // display center of rotation
+    rotate([0, 90, 0]) 
+    color(debugColor) 
+    %cylinder(insideX, 2, 2);
+
+    // other set
+    if (customTime >= 0) {
+        explode(0, 4, 0){
+            rotate([topRotate, 0, 0]) {
+                translate([0, rotationOffset, insideZ*-1]) {
+                    // top part (rotated)
+                    set(arrowRadius = 25, isBottom = false);
+
+                    // leather binding base
+                    translate([leatherBaseOffsetX, -sideT -leatherT, 0]) 
+                    color(brown4)
+                    cube([leatherBaseX, leatherT, leatherBaseY]);
+                }
+            }
+        }
+    }
+}
+
+// leather binding
+leatherLengthRatio = 0.85;
+leatherLengthOffset = (1 -leatherLengthRatio)/2;
+leatherBaseX = insideX * leatherLengthRatio;
+leatherBaseOffsetX = leatherLengthOffset * insideX;
+leatherBaseY = 30;
+leatherRotationY = 20;
+leatherT = 4;
+openingAngle = 1*(180 - topRotate);
+translate([0, insideY +sideT, insideZ -leatherBaseY -leatherRotationY]) {
+
+    // leather binding base
+    translate([leatherBaseOffsetX, 0, 0]) 
+    color(brown4)
+    cube([leatherBaseX, leatherT, leatherBaseY]);
+
+    // leather binding arc
+    translate([leatherBaseOffsetX, leatherRotationY*2, 0 +leatherBaseY]) {
+        
+        rotate([0, 90, 0]) {
+
+            extraAngle = atan(leatherRotationY/rotationOffset);
+            totalAngle = openingAngle +2*(extraAngle);
+            echo(str("TotalAngle = ", openingAngle, " + 2x ", extraAngle, " = ", totalAngle));
+        
+            rotate([0, 00, -90]) {
+
+    // display center of rotation
+    color(debugColor) 
+    %cylinder(insideX, 2, 2);
+
+                color(brown4)
+                rotate_extrude(angle=-totalAngle) {
+                    translate([leatherRotationY*2 -leatherT, 0, 0]) 
+                    square([leatherT, insideX*leatherLengthRatio]);
+                }
+
+            }
+        }
+    }
 }
 
 module set(arrowRadius = 25, isBottom = false) {
@@ -296,3 +357,13 @@ function xp() =
     smoothTime() * explodeL;
 
 echo(str("$t=", $t, " smooth=", smoothTime(), " xp=", xp()));
+
+
+
+
+
+
+
+
+
+
