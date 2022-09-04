@@ -31,9 +31,10 @@ arrowT =       9.5; // mm. thickness of arrow shaft
 topRotate =    45; // [0:180]
 globalAlpha = .99;
 
-brown1 =       [142/255, 124/255, 064/255, globalAlpha];
+brown1 =       [140/255, 118/255, 037/255, globalAlpha];
 brown2 =       [130/255, 108/255, 037/255, globalAlpha];
-brown3 =       [096/255, 084/255, 045/255, globalAlpha];
+brown3 =       [120/255, 098/255, 037/255, globalAlpha];
+darkGrey =     [050/255, 050/255, 050/255, globalAlpha];
 debugColor =   [060/255, 084/255, 000/255, .35];
 arrowColor =   [000/255, 084/255, 080/255, .55];
 customTime =   -0.5; // [-0.5:0.5:1.0]
@@ -65,19 +66,18 @@ module set(arrowRadius = 25, isBottom = false) {
 
     // front
     frontPartX = baseX + 2 * sideT;
-    color(brown2)
     translate([-sideT, 0, -baseExtraZ -fondT])
     explode(0, -1, 0)
     rotate([90, 0, 0])
-    plank(frontPartX, frontH);
+    frontPlank(frontPartX, frontH);
     echo(str("PART: front part: [", frontPartX, ", ", frontH, ", ", sideT, "]"));
 
     // back
-    color(brown2)
     translate([-sideT, baseY + sideT, -baseExtraZ -fondT])
     explode(0, +1, 0)
-    rotate([90, 0, 0])
-    plank(frontPartX, frontH);
+    rotate([90, 0, 180])
+    translate([-frontPartX, 0, -sideT]) 
+    frontPlank(frontPartX, frontH);
     echo(str("PART: back  part: [", frontPartX, ", ", frontH, ", ", sideT, "]"));
 
     // left
@@ -98,6 +98,7 @@ module set(arrowRadius = 25, isBottom = false) {
     echo(str("PART: right part: [", baseY, ", ", sideH, ", ", sideT, "]"));
 
     // back plate for leather thingy
+    /*
     leatherPlate = [ baseX * 0.8 , frontH/3, sideT/3 ];
     color(brown2)
     translate([baseX * 0.1, baseY + sideT + sideT/4 + sideT/3,  4*sideT/3])
@@ -105,6 +106,7 @@ module set(arrowRadius = 25, isBottom = false) {
     rotate([90, 0, 0])
     cube(leatherPlate);
     echo(str("PART: leather plate: ", leatherPlate));
+    */
 
     // arrow fetching separator
     color(brown3)
@@ -187,7 +189,65 @@ module plank(x, y){
 }
 
 
-module footPlank(x, y,isBottom = false) {
+module frontPlank(x, y, isBottom = false) {
+
+    union(){
+
+        color(brown2)
+        plank(x, y);
+
+        // studs
+        vertSpacing = 22;
+        horiSpacing = 80;
+
+        // left+right studs
+        leftCount  = floor(y / vertSpacing) - 1;
+        leftOffset = floor(y % vertSpacing);
+        for (i = [0:leftCount]) {
+            // left
+            translate([sideT/2, leftOffset + i * vertSpacing, sideT]) 
+            stud();
+            // right
+            translate([sideT/2 + x - sideT, leftOffset + i * vertSpacing, sideT]) 
+            stud();
+        }
+
+        // up+down studs
+        topCount  = floor(x / horiSpacing) - 1;
+        topOffset = floor(x % horiSpacing);
+        for (i = [0:topCount]) {
+            // up
+            ////translate([topOffset + i * horiSpacing, sideT/2 + y - sideT, sideT]) 
+            ////stud();
+            // down
+            translate([topOffset + i * horiSpacing, sideT/2, sideT]) 
+            stud();
+        }
+    }
+}
+
+module stud() {
+    size = 5;
+    length = 15;
+    union() {
+        // head
+        difference() {
+            color(darkGrey)
+            sphere(size);
+
+            translate([-size, -size, -size*2])
+            cube(size * 2);
+        }
+
+        // nail
+        color(darkGrey)
+        translate([0, 0, -length])
+        cylinder(length, size/10, size/3);
+    }
+}
+
+
+module footPlank(x, y, isBottom = false) {
     width = x + sideT + sideT;
 
     if (isBottom) {
