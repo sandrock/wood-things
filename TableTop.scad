@@ -8,6 +8,24 @@
 // Copyright:      sandrock, all rights reserved
 // 
 
+// cable hole must be 50mm to allow DVI connectors
+// cable hole must be 40mm to allow  connectors
+// cable hole must be 30mm to allow power connectors
+
+// config1: table is 150x75, tablet is 150x40
+// screws along long  side are located at: 4, 40, 75
+// screws along short side are located at: 9, 20, 36
+// top  holes are located at either: 25 (ok), 50 (best), center (ok)
+// back holes are located at either: 8, 15 (best), 18
+// front line angle points: 0, 25, 35 (short deepness is 30 cm)
+
+// config2: table is 120x70, tablet is 
+// screws along long  side are located at: 
+// screws along short side are located at: 
+// top  holes are located at either: 
+// back holes are located at either: 
+// front line angle points: 0, 25, 35 (short deepness is 30 cm)
+
 // input variables
 // suffixes are T̲hickness, L̲ength, H_eight, R_adius
 // millimeters
