@@ -1,12 +1,16 @@
 
 // 
-// Coffret et présentoir pour flèches
-// Box    and display    for  arrows
+// Coffret et présentoir pour flèches (XV)
+// Box    and display    for  arrows  (XV)
 // 
 // Author:         sandrock@sandrock.fr
 // Public license: none
 // Copyright:      sandrock, all rights reserved
 // 
+
+// TODO: thing to keep arrows from falling
+// TODO: two leather belts to close the box
+// TODO: 
 
 // animate with FPS=20 Step=50
 // input variables
@@ -42,6 +46,15 @@ customTime =   -0.5; // [-0.5:0.5:1.0]
 
 // intermediate variables
 frontH = insideZ + fondT + baseExtraZ;
+
+// log
+echo(str(""));
+echo(str("Arrow Box"));
+echo(str("---------------"));
+echo(str(""));
+echo(str("Inside:  X=", insideX, " Y=", insideY, " Z=", insideZ));
+echo(str("Outside: X=", (insideX+2*sideT), " Y=", (insideY+2*sideT)));
+echo(str(""));
 
 // bottom part
 set(arrowRadius = 20, isBottom = true);
@@ -123,7 +136,7 @@ module set(arrowRadius = 25, isBottom = false) {
     color(brown1)
     translate([-baseExtraX, -baseExtraX, -fondT])
     cube(backPlate);
-    echo(str("PART: back plate: ", backPlate));
+    echo(str("PART: ", (isBottom ? "bottom" : "top   "), " back plate: ", backPlate));
 
     // front
     frontPartX = baseX + 2 * sideT;
@@ -131,7 +144,7 @@ module set(arrowRadius = 25, isBottom = false) {
     explode(0, -1, 0)
     rotate([90, 0, 0])
     frontPlank(frontPartX, frontH);
-    echo(str("PART: front part: [", frontPartX, ", ", frontH, ", ", sideT, "]"));
+    echo(str("PART: ", (isBottom ? "bottom" : "top   "), " front part: [", frontPartX, ", ", frontH, ", ", sideT, "]"));
 
     // back
     translate([-sideT, baseY + sideT, -baseExtraZ -fondT])
@@ -139,22 +152,20 @@ module set(arrowRadius = 25, isBottom = false) {
     rotate([90, 0, 180])
     translate([-frontPartX, 0, -sideT]) 
     frontPlank(frontPartX, frontH);
-    echo(str("PART: back  part: [", frontPartX, ", ", frontH, ", ", sideT, "]"));
+    echo(str("PART: ", (isBottom ? "bottom" : "top   "), " back  part: [", frontPartX, ", ", frontH, ", ", sideT, "]"));
 
     // left
     sideH = isBottom ? (frontH + legL) : frontH;
     translate([0, insideY, -sideH + insideZ])
     explode(-1, 0, 0)
     rotate([90, 0, 90+180])
-    footPlank(baseY, sideH, isBottom);
-    echo(str("PART: left  part: [", baseY, ", ", sideH, ", ", sideT, "]"));
+    footPlank(baseY, sideH, isBottom, true);
 
     // right
     translate([baseX, 0, -sideH + insideZ])
     explode(+1, 0, 0)
     rotate([90, 0, 90])
-    footPlank(baseY, sideH, isBottom);
-    echo(str("PART: right part: [", baseY, ", ", sideH, ", ", sideT, "]"));
+    footPlank(baseY, sideH, isBottom, false);
 
     // back plate for leather thingy
     /*
@@ -304,10 +315,12 @@ module stud() {
     }
 }
 
-module footPlank(x, y, isBottom = false) {
-    width = x + sideT + sideT;
+module footPlank(x, y, isBottom = false, isLeft = false) {
 
     if (isBottom) {
+        width = x + sideT + sideT;
+        radius = width/2;
+        offset = -radius + x*0.07;
         translate([-sideT, 0, 0])
         color(brown3)
         difference(){
@@ -321,13 +334,16 @@ module footPlank(x, y, isBottom = false) {
                 cube([width, legL, sideT]);
             };
 
-            radius = width/2;
-            translate([radius, -radius + x*0.07, -0.04])
+            translate([radius, offset, -0.04])
             cylinder(sideT*1.08, radius, radius, false);
         }
+        echo(str("PART: bottom ", (isLeft ? "left" : "right"), " part: [", width, ", ", y, ", ", sideT, 
+            "] r=", radius, " o=", offset));
     } else {
+        width = x;
         color(brown3)
         plank(baseY, frontH);
+        echo(str("PART: top    ", (isLeft ? "left" : "right"), " part: [", width, ", ", y, ", ", sideT, "]"));
     }
 
     // studs
