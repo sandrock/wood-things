@@ -28,8 +28,8 @@ legL =         25; // mm. extra length for the side parts to serve as legs
 baseExtraX =   00; // mm. how much the back plate penetratres into the side parts
 baseExtraZ =   00; // mm. how much distance between the back plate and the ground
 explodeL =     80; // mm. during animation: how much to expand parts
-arrowSpaceForFletching = 300; // mm. length reserved for the fletching side of the arrow
-arrowSpaceForHead =      170; // mm. length reserved for the head      side of the arrow
+arrowSpaceForFletching = 250; // mm. length reserved for the fletching side of the arrow
+arrowSpaceForHead =      250; // mm. length reserved for the head      side of the arrow
 arrowT =       9.5; // mm. thickness of arrow shaft 
 
 topRotate =    45; // [0:180]
@@ -183,14 +183,14 @@ module set(arrowRadius = 25, isBottom = false) {
     translate([arrowSpaceForFletching, 0, 0]) 
     explode(0, 0, 1)
     rotate([90, 0, 90])
-    arrowPlank(insideY, 50, arrowRadius);
+    arrowPlank(insideY, 50, arrowRadius, isBottom, true);
 
     // arrow head separator
     color(brown3)
     translate([insideX - arrowSpaceForHead, 0, 0]) 
     explode(0, 0, 1)
     rotate([90, 0, 90])
-    arrowPlank(insideY, 50, arrowRadius); 
+    arrowPlank(insideY, 50, arrowRadius, isBottom, false); 
 
     // arrows
     translate([000, 000, arrowT]) // elevate arrows a bit
@@ -199,13 +199,19 @@ module set(arrowRadius = 25, isBottom = false) {
     arrows(insideY*1, insideX, arrowRadius);
 }
 
-module arrowPlank(x, y, radiusL){
+module arrowPlank(x, y, radiusL, isBottom, log) {
     difference() {
         plank(x, y);
 
         // make holes for arrow shafts to fit in
-        for (i = [0:10]) {
-            translate([radiusL + i*radiusL*2, y-radiusL, -0.5]) {
+        maxArrows = floor(x / radiusL / 2) - 1;
+        for (i = [0:maxArrows]) {
+            if (log) {
+                echo(str("ARROW: ", (isBottom ? "bottom" : "top   "), " i=", i, " index=", tx, "/", x));
+            }
+            tx = radiusL + i*radiusL*2;
+            ty = y-radiusL;
+            translate([tx, ty, -0.5]) {
                 scale(1.05) 
                 color(debugColor)
                 cube([arrowT, frontH/2 - arrowT/2, sideT]);
