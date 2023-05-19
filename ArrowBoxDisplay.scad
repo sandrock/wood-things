@@ -17,23 +17,24 @@
 // suffixes are T̲hickness, L̲ength
 // length is in millimeters 
 // origin is the left front corner of the inside of the box
-insideX =      900; // mm. desired space inside box
-insideY =      320; // mm. desired space inside box
-insideZ =      060; // mm. desired space inside box
-baseX =        insideX;
-baseY =        insideY;
-fondT =        18; // mm. thickness of the back plate
-sideT =        18; // mm. thickness of the side parts
-legL =         25; // mm. extra length for the side parts to serve as legs
-baseExtraX =   00; // mm. how much the back plate penetratres into the side parts
-baseExtraZ =   00; // mm. how much distance between the back plate and the ground
-explodeL =     80; // mm. during animation: how much to expand parts
+insideX =        900;    // mm. desired space inside box
+insideY =        320;    // mm. desired space inside box
+insideZ =        060;    // mm. desired space inside box
+baseX =          insideX;
+baseY =          insideY;
+fondT =          18;    // mm. thickness of the back plate
+sideT =          18;    // mm. thickness of the side parts
+legL =           25;    // mm. extra length for the side parts to serve as legs
+baseExtraX =     00;    // mm. how much the back plate penetratres into the side parts
+baseExtraZ =     00;    // mm. how much distance between the back plate and the ground
+explodeL =       80;    // mm. during animation: how much to expand parts
 arrowSpaceForFletching = 250; // mm. length reserved for the fletching side of the arrow
 arrowSpaceForHead =      250; // mm. length reserved for the head      side of the arrow
-arrowT =       9.5; // mm. thickness of arrow shaft 
-
-topRotate =    45; // [0:180]
-globalAlpha = .99;
+arrowT =         9.5;   // mm. thickness of arrow shaft 
+arrowRadiusBot = 20;    // mm. how much width for each arrow, on bottom, default 20
+arrowRadiusTop = 25;    // mm. how much width for each arrow, on top,    default 25
+topRotate =      45;    // [0:180]
+globalAlpha =   .99;
 
 brown1 =       [140/255, 118/255, 037/255, globalAlpha]; // wood plates
 brown2 =       [130/255, 108/255, 037/255, globalAlpha]; // wood fronts
@@ -57,7 +58,7 @@ echo(str("Outside: X=", (insideX+2*sideT), " Y=", (insideY+2*sideT)));
 echo(str(""));
 
 // bottom part
-set(arrowRadius = 20, isBottom = true);
+set(arrowRadius = arrowRadiusBot, isBottom = true);
 
 // top part (rotated)
 rotationOffset = 40;
@@ -74,7 +75,7 @@ translate([0, insideY +rotationOffset , insideZ]) {
             rotate([topRotate, 0, 0]) {
                 translate([0, rotationOffset, insideZ*-1]) {
                     // top part (rotated)
-                    set(arrowRadius = 25, isBottom = false);
+                    set(arrowRadius = arrowRadiusTop, isBottom = false);
 
                     // leather binding base
                     translate([leatherBaseOffsetX, -sideT -leatherT, 0]) 
